@@ -86,6 +86,9 @@ if(AU_MODULE_EFFECTS_VST)
     add_subdirectory(vst3)
 endif()
 
+# RapidJSON (header-only, used by au3-musehub, au3-cloud-audiocom, au3-import-export, au3-sentry-reporting)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/rapidjson rapidjson)
+
 # Include AU3 libraries - this will add all library subdirectories
 # and set AU3_LIBRARIES_LIST in this scope
 add_subdirectory(${AU3_LIBRARIES} au3-libraries)

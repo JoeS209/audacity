@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "au3-import-export/rapidjson/fwd.h"
+#include <rapidjson/fwd.h>
 
 enum class AudiocomTrace;
 

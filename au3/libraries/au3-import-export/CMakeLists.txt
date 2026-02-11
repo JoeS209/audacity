@@ -43,6 +43,7 @@ set( LIBRARIES
    au3-wave-track-interface
    au3-project-interface
    au3-registries
+   rapidjson::rapidjson
    PRIVATE
    au3-effects-interface
    wxBase

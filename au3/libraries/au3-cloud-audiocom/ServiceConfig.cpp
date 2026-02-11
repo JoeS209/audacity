@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <string_view>
 
-#include "au3-import-export/rapidjson/document.h"
+#include <rapidjson/document.h>
 #include "au3-string-utils/CodeConversions.h"
 #include "au3-preferences/Prefs.h"
 

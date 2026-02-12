@@ -1,0 +1,137 @@
+/*
+* Audacity: A Digital Audio Editor
+*/
+#include "geteffectsmodel.h"
+
+#include <QTimer>
+
+#include "au3-musehub/MuseHubService.h"
+
+using namespace au::projectscene;
+
+GetEffectsModel::GetEffectsModel(QObject* parent)
+    : QObject(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
+{
+}
+
+void GetEffectsModel::load()
+{
+    setIsLoading(true);
+    setHasError(false);
+
+    audacity::musehub::GetEffects([this](std::vector<audacity::musehub::EffectsGroup> groups) {
+        QTimer::singleShot(0, this, [this, groups = std::move(groups)]() {
+            m_allGroups.clear();
+            m_categories.clear();
+            m_categories.append(tr("All"));
+
+            for (const auto& group : groups) {
+                EffectsGroupData groupData;
+                groupData.title = QString::fromStdString(group.title);
+                for (const auto& effect : group.effects) {
+                    EffectData effectData;
+                    effectData.iconUrl = QString::fromStdString(effect.iconUrl);
+                    effectData.code = QString::fromStdString(effect.code);
+                    effectData.title = QString::fromStdString(effect.title);
+                    effectData.subtitle = QString::fromStdString(effect.subtitle);
+                    effectData.category = QString::fromStdString(effect.category);
+                    groupData.effects.append(effectData);
+                }
+                if (!groupData.effects.isEmpty()) {
+                    m_allGroups.append(groupData);
+                    m_categories.append(groupData.title);
+                }
+            }
+
+            setIsLoading(false);
+            if (m_allGroups.isEmpty()) {
+                setHasError(true);
+            }
+            emit categoriesChanged();
+            emit effectsGroupsChanged();
+        });
+    });
+}
+
+void GetEffectsModel::openEffectUrl(const QString& effectCode)
+{
+    std::string url = audacity::musehub::GetEffectUrl(effectCode.toStdString());
+    interactive()->openUrl(url);
+}
+
+void GetEffectsModel::openBecomeAPartnerUrl()
+{
+    std::string url = audacity::musehub::GetBecomeAPartnerUrl();
+    interactive()->openUrl(url);
+}
+
+QVariantList GetEffectsModel::effectsGroups() const
+{
+    QVariantList result;
+    for (int i = 0; i < m_allGroups.size(); ++i) {
+        const auto& group = m_allGroups[i];
+        if (m_selectedCategoryIndex != 0 && (m_selectedCategoryIndex - 1) != i) {
+            continue;
+        }
+        QVariantList effectsList;
+        for (const auto& effect : group.effects) {
+            QVariantMap effectMap;
+            effectMap["iconUrl"] = effect.iconUrl;
+            effectMap["code"] = effect.code;
+            effectMap["title"] = effect.title;
+            effectMap["subtitle"] = effect.subtitle;
+            effectMap["category"] = effect.category;
+            effectsList.append(effectMap);
+        }
+        QVariantMap groupMap;
+        groupMap["title"] = group.title;
+        groupMap["effects"] = effectsList;
+        result.append(groupMap);
+    }
+    return result;
+}
+
+QVariantList GetEffectsModel::categories() const
+{
+    QVariantList result;
+    for (const auto& cat : m_categories) {
+        result.append(cat);
+    }
+    return result;
+}
+
+int GetEffectsModel::selectedCategoryIndex() const
+{
+    return m_selectedCategoryIndex;
+}
+
+void GetEffectsModel::setSelectedCategoryIndex(int index)
+{
+    if (m_selectedCategoryIndex == index) {
+        return;
+    }
+    m_selectedCategoryIndex = index;
+    emit selectedCategoryIndexChanged();
+    emit effectsGroupsChanged();
+}
+
+bool GetEffectsModel::isLoading() const { return m_isLoading; }
+bool GetEffectsModel::hasError() const { return m_hasError; }
+
+void GetEffectsModel::setIsLoading(bool loading)
+{
+    if (m_isLoading == loading) {
+        return;
+    }
+    m_isLoading = loading;
+    emit isLoadingChanged();
+}
+
+void GetEffectsModel::setHasError(bool error)
+{
+    if (m_hasError == error) {
+        return;
+    }
+    m_hasError = error;
+    emit hasErrorChanged();
+}

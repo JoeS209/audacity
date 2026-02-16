@@ -68,5 +68,7 @@ private:
     size_t m_totalItems = muse::nidx;
 
     int m_desiredRowCount = 0;
+
+    uint64_t m_reloadGeneration = 0;
 };
 }

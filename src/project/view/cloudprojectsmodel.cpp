@@ -50,6 +50,7 @@ void CloudProjectsModel::reload()
     audioComService()->cancelRequests();
     audioComService()->clearProjectListCache();
     m_isWaitingForPromise = false;
+    ++m_reloadGeneration;
 
     beginResetModel();
 
@@ -115,8 +116,14 @@ void CloudProjectsModel::loadItemsIfNecessary()
 
         m_isWaitingForPromise = true;
 
+        const auto generation = m_reloadGeneration;
+
         audioComService()->downloadProjectList(BATCH_SIZE, static_cast<int>(m_items.size()) / BATCH_SIZE + 1)
-        .onResolve(this, [this](const au::au3cloud::ProjectList& projectList) {
+        .onResolve(this, [this, generation](const au::au3cloud::ProjectList& projectList) {
+            if (generation != m_reloadGeneration) {
+                return;
+            }
+
             if (!projectList.items.empty()) {
                 beginInsertRows(QModelIndex(), static_cast<int>(m_items.size()),
                                 static_cast<int>(m_items.size() + projectList.items.size()) - 1);
@@ -151,7 +158,10 @@ void CloudProjectsModel::loadItemsIfNecessary()
 
             loadItemsIfNecessary();
         })
-        .onReject(this, [this](int errorCode, const std::string&) {
+        .onReject(this, [this, generation](int errorCode, const std::string&) {
+            if (generation != m_reloadGeneration) {
+                return;
+            }
             m_isWaitingForPromise = false;
             if (errorCode == static_cast<int>(muse::Ret::Code::Cancel)) {
                 return;

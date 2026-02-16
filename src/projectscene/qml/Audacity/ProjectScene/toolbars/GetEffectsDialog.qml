@@ -10,10 +10,28 @@ import Audacity.ProjectScene
 StyledDialogView {
     id: root
 
-    title: qsTrc("projectscene", "Get Effects")
+    title: qsTrc("projectscene", "Get effects")
 
-    contentWidth: 920
-    contentHeight: 650
+    QtObject {
+        id: prv
+
+        readonly property int spaceS: 4
+        readonly property int spaceM: 8
+        readonly property int spaceL: 12
+        readonly property int spaceXL: 16
+        readonly property int spaceXXL: 24
+
+        readonly property int menuWidth: 224
+        readonly property int errorTextWidth: 400
+
+        readonly property int contentWidth: 880
+        readonly property int contentHeight: 692 // 720 (figma) - 28 (figma window header)
+
+        readonly property int sideMargin: 16
+    }
+
+    contentWidth: prv.contentWidth
+    contentHeight: prv.contentHeight
 
     modal: true
     resizable: false
@@ -30,107 +48,115 @@ StyledDialogView {
         anchors.fill: parent
         spacing: 0
 
-        // Category tabs
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 48
-            color: ui.theme.backgroundSecondaryColor
-
-            RowLayout {
-                id: categoryRow
-                anchors.fill: parent
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-                spacing: 4
-
-                Repeater {
-                    model: effectsModel.categories
-
-                    FlatButton {
-                        text: modelData
-                        accentButton: index === effectsModel.selectedCategoryIndex
-                        onClicked: effectsModel.selectedCategoryIndex = index
-                    }
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-            }
-        }
-
-        SeparatorLine {}
-
-        // Main content
-        Item {
+        RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            // Loading
-            ColumnLayout {
-                anchors.centerIn: parent
-                visible: effectsModel.isLoading
-                spacing: 12
+            spacing: 0
 
-                StyledBusyIndicator {
-                    Layout.alignment: Qt.AlignHCenter
-                    running: effectsModel.isLoading
-                }
+            GetEffectsMenu {
+                id: menu
 
-                StyledTextLabel {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTrc("projectscene", "Please wait...")
-                    font: ui.theme.largeBodyFont
-                }
+                Layout.fillHeight: true
+                Layout.preferredWidth: prv.menuWidth - 1 // -1 for vertical separator line
+
+                navigation.section: root.navigationSection
+                navigation.order: 1
+
+                model: effectsModel
             }
 
-            // Error
-            ColumnLayout {
-                anchors.centerIn: parent
-                visible: effectsModel.hasError && !effectsModel.isLoading
-                spacing: 16
-
-                StyledTextLabel {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTrc("projectscene", "Connection error")
-                    font: ui.theme.largeBodyBoldFont
-                }
-
-                StyledTextLabel {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 400
-                    text: qsTrc("projectscene", "Audacity is unable to connect to MuseHub.com. Please check your connection and try again.")
-                    wrapMode: Text.Wrap
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                FlatButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTrc("projectscene", "Try again")
-                    onClicked: effectsModel.load()
-                }
+            SeparatorLine {
+                orientation: Qt.Vertical
             }
 
-            // Effects grid
-            Flickable {
-                anchors.fill: parent
-                anchors.margins: 16
-                visible: !effectsModel.isLoading && !effectsModel.hasError
-                contentHeight: effectsColumn.height
-                clip: true
+            // Main content
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: ui.theme.backgroundSecondaryColor
 
-                ScrollBar.vertical: StyledScrollBar {}
+                // Loading
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    visible: effectsModel.isLoading
+                    spacing: prv.spaceL
 
-                Column {
-                    id: effectsColumn
-                    width: parent.width
-                    spacing: 24
-
-                    Repeater {
-                        model: effectsModel.effectsGroups
-
-                        delegate: effectsGroupDelegate
+                    StyledBusyIndicator {
+                        Layout.alignment: Qt.AlignHCenter
+                        running: effectsModel.isLoading
                     }
+
+                    StyledTextLabel {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: qsTrc("projectscene", "Please wait...")
+                        font: ui.theme.largeBodyFont
+                    }
+                }
+
+                // Error
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    visible: effectsModel.hasError && !effectsModel.isLoading
+                    spacing: prv.spaceXL
+
+                    StyledTextLabel {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: qsTrc("projectscene", "Connection error")
+                        font: ui.theme.largeBodyBoldFont
+                    }
+
+                    StyledTextLabel {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: prv.errorTextWidth
+                        text: qsTrc("projectscene", "Audacity is unable to connect to MuseHub.com. Please check your connection and try again.")
+                        wrapMode: Text.Wrap
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+
+                    FlatButton {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: qsTrc("projectscene", "Try again")
+                        onClicked: effectsModel.load()
+                    }
+                }
+
+                // Effects grid
+                StyledFlickable {
+                    id: flickable
+
+                    anchors.fill: parent
+                    leftMargin: prv.spaceXL
+                    rightMargin: prv.spaceXL
+                    topMargin: prv.spaceXL
+                    bottomMargin: prv.spaceXL
+                    visible: !effectsModel.isLoading && !effectsModel.hasError
+                    contentHeight: effectsColumn.height
+                    clip: true
+
+                    Column {
+                        id: effectsColumn
+                        width: parent.width
+                        spacing: prv.spaceXL
+
+                        Repeater {
+                            model: effectsModel.effectsGroups
+
+                            delegate: effectsGroupDelegate
+                        }
+                    }
+
+                    ScrollBar.vertical: scrollBar
+                    ScrollBar.horizontal: null
+                }
+
+                StyledScrollBar {
+                    id: scrollBar
+                    anchors.top: flickable.top
+                    anchors.right: flickable.right
+                    anchors.bottom: flickable.bottom
+
+                    policy: ScrollBar.AlwaysOn
                 }
             }
         }
@@ -140,10 +166,10 @@ StyledDialogView {
         // Bottom bar
         RowLayout {
             Layout.fillWidth: true
-            Layout.margins: 12
+            Layout.margins: prv.spaceL
 
             FlatButton {
-                text: qsTrc("projectscene", "Become a Partner")
+                text: qsTrc("projectscene", "Become a partner")
                 onClicked: effectsModel.openBecomeAPartnerUrl()
             }
 
@@ -168,79 +194,27 @@ StyledDialogView {
 
         Column {
             width: effectsColumn.width
-            spacing: 12
+            spacing: prv.spaceXL
 
             required property var modelData
 
-            StyledTextLabel {
-                text: modelData.title
-                font: ui.theme.largeBodyBoldFont
-                horizontalAlignment: Text.AlignLeft
-            }
-
-            GridLayout {
+            Flow {
                 width: parent.width
-                columns: 2
-                columnSpacing: 40
-                rowSpacing: 16
+                spacing: prv.spaceXL
 
                 Repeater {
                     model: modelData.effects
 
-                    RowLayout {
-                        Layout.preferredWidth: (effectsColumn.width - 40) / 2
-                        Layout.preferredHeight: 118
-                        spacing: 16
-
+                    EffectCard {
                         required property var modelData
 
-                        Rectangle {
-                            Layout.preferredWidth: 118
-                            Layout.preferredHeight: 118
-                            radius: 12
-                            color: ui.theme.buttonColor
-                            clip: true
+                        iconUrl: modelData.iconUrl
+                        title: modelData.title
+                        subtitle: modelData.subtitle
+                        effectCode: modelData.code
 
-                            Image {
-                                anchors.fill: parent
-                                source: modelData.iconUrl
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            spacing: 4
-
-                            StyledTextLabel {
-                                Layout.fillWidth: true
-                                text: modelData.title
-                                font: ui.theme.bodyBoldFont
-                                horizontalAlignment: Text.AlignLeft
-                                maximumLineCount: 1
-                                elide: Text.ElideRight
-                            }
-
-                            StyledTextLabel {
-                                Layout.fillWidth: true
-                                text: modelData.subtitle
-                                horizontalAlignment: Text.AlignLeft
-                                wrapMode: Text.Wrap
-                                maximumLineCount: 2
-                                elide: Text.ElideRight
-                            }
-
-                            Item {
-                                Layout.fillHeight: true
-                            }
-
-                            FlatButton {
-                                text: qsTrc("projectscene", "Get it on MuseHub")
-                                accentButton: true
-                                onClicked: effectsModel.openEffectUrl(modelData.code)
-                            }
+                        onGetEffectClicked: function(code) {
+                            effectsModel.openEffectUrl(code)
                         }
                     }
                 }

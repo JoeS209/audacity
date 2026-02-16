@@ -10,8 +10,6 @@
 #include "framework/global/async/asyncable.h"
 #include "framework/global/async/promise.h"
 
-#include "au3-concurrency/concurrency/CancellationContext.h"
-
 #include "au3cloud/cloudtypes.h"
 #include "au3cloud/iau3audiocomservice.h"
 
@@ -25,8 +23,6 @@ public:
 
     muse::async::Promise<AudioList> downloadAudioList(size_t audiosPerBatch, size_t batchNumber, const FetchOptions& options) override;
     void clearAudioListCache() override;
-
-    void cancelRequests() override;
 
 private:
     struct CachedProjectItem {
@@ -45,8 +41,5 @@ private:
     size_t m_audiosPerBatch = 0;
 
     std::mutex m_cacheMutex;
-
-    std::mutex m_pendingRequestsMutex;
-    std::set<audacity::concurrency::CancellationContextPtr> m_pendingCancellationContexts;
 };
 }

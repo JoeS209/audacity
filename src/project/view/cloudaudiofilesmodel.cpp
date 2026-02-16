@@ -47,7 +47,6 @@ void CloudAudioFilesModel::load()
 
 void CloudAudioFilesModel::reload()
 {
-    audioComService()->cancelRequests();
     audioComService()->clearAudioListCache();
     m_isWaitingForPromise = false;
     ++m_reloadGeneration;
@@ -157,14 +156,11 @@ void CloudAudioFilesModel::loadItemsIfNecessary()
 
             loadItemsIfNecessary();
         })
-        .onReject(this, [this, generation](int errCode, const std::string&) {
+        .onReject(this, [this, generation](int, const std::string&) {
             if (generation != m_reloadGeneration) {
                 return;
             }
             m_isWaitingForPromise = false;
-            if (errCode == static_cast<int>(muse::Ret::Code::Cancel)) {
-                return;
-            }
             setState(State::Error);
         });
     } else {

@@ -47,7 +47,6 @@ void CloudProjectsModel::load()
 
 void CloudProjectsModel::reload()
 {
-    audioComService()->cancelRequests();
     audioComService()->clearProjectListCache();
     m_isWaitingForPromise = false;
     ++m_reloadGeneration;
@@ -158,14 +157,11 @@ void CloudProjectsModel::loadItemsIfNecessary()
 
             loadItemsIfNecessary();
         })
-        .onReject(this, [this, generation](int errorCode, const std::string&) {
+        .onReject(this, [this, generation](int, const std::string&) {
             if (generation != m_reloadGeneration) {
                 return;
             }
             m_isWaitingForPromise = false;
-            if (errorCode == static_cast<int>(muse::Ret::Code::Cancel)) {
-                return;
-            }
             setState(State::Error);
         });
     } else {

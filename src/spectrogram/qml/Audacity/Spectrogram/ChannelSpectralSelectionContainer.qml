@@ -181,6 +181,18 @@ Item {
         y: selectionModel.selectionY
         width: root.selectionEndPosition - root.selectionStartPosition
         height: selectionModel.selectionHeight
+
+        lineWidth: 1
+        color: "white"
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+
+            height: marquee.lineWidth
+            color: marquee.color
+        }
     }
 
     QtObject {

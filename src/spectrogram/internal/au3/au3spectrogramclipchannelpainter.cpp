@@ -172,9 +172,6 @@ void Au3SpectrogramClipChannelPainter::fillImage(QImage& image,
 
     const float selBinLo = settings.findBin(selectionInfo.startFrequency, binUnit);
     const float selBinHi = settings.findBin(selectionInfo.endFrequency, binUnit);
-    const auto normStartFreq = numberScale.valueToPosition(selectionInfo.startFrequency);
-    const auto normEndFreq = numberScale.valueToPosition(selectionInfo.endFrequency);
-    const int selYCenter = image.height() * (1 - (normStartFreq + normEndFreq) / 2);
 
     SpecCache specCache;
 
@@ -213,11 +210,7 @@ void Au3SpectrogramClipChannelPainter::fillImage(QImage& image,
 
             // If we are in the time selected range, then we may use a different color set.
             if (maybeSelected) {
-                if (imageHeight - yy - 1 == selYCenter) {
-                    selected = SpectrogramColors::ColorGradientEdge;
-                } else {
-                    selected = ChooseColorSet(bin, nextBin, selBinLo, selBinHi);
-                }
+                selected = ChooseColorSet(bin, nextBin, selBinLo, selBinHi);
             }
 
             const float value = specPxCache->values[xx * imageHeight + yy];

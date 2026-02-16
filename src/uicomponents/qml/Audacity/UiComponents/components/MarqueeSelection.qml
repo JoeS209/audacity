@@ -10,6 +10,9 @@ Canvas {
     property alias bottomRight: bottomRight
     property alias bottomLeft: bottomLeft
 
+    required property color color
+    required property int lineWidth
+
     readonly property var handleId: ({
             None: -1,
             TopLeft: 0,
@@ -61,7 +64,7 @@ Canvas {
     onPaint: {
         var ctx = getContext("2d")
         ctx.clearRect(0, 0, width, height)
-        ctx.lineWidth = 1;
+        ctx.lineWidth = root.lineWidth;
 
         // Draw black dashes
         ctx.strokeStyle = "black"
@@ -70,7 +73,7 @@ Canvas {
         ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
 
         // Draw white dashes offset by 4px
-        ctx.strokeStyle = "white"
+        ctx.strokeStyle = root.color
         ctx.lineDashOffset = 4
         ctx.strokeRect(0.5, 0.5, width - 1, height - 1)
     }

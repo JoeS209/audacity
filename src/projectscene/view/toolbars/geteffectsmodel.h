@@ -24,11 +24,11 @@ class GetEffectsModel : public QObject, public muse::async::Asyncable, public mu
     Q_PROPERTY(bool hasError READ hasError NOTIFY hasErrorChanged FINAL)
 
 public:
-    GetEffectsModel(QObject* parent = nullptr);
+    explicit GetEffectsModel(QObject* parent = nullptr);
 
     Q_INVOKABLE void load();
-    Q_INVOKABLE void openEffectUrl(const QString& effectCode);
-    Q_INVOKABLE void openBecomeAPartnerUrl();
+    Q_INVOKABLE void openEffectUrl(const QString& effectCode) const;
+    Q_INVOKABLE void openBecomeAPartnerUrl() const;
 
     QVariantList effectsGroups() const;
     QVariantList categories() const;
@@ -36,6 +36,7 @@ public:
     void setSelectedCategoryIndex(int index);
     bool isLoading() const;
     bool hasError() const;
+    void openUrl(const std::string& url) const;
 
 signals:
     void effectsGroupsChanged();

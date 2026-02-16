@@ -23,7 +23,6 @@ void GetEffectsModel::load()
         QTimer::singleShot(0, this, [this, groups = std::move(groups)]() {
             m_allGroups.clear();
             m_categories.clear();
-            m_categories.append(tr("All"));
 
             for (const auto& group : groups) {
                 EffectsGroupData groupData;
@@ -53,16 +52,24 @@ void GetEffectsModel::load()
     });
 }
 
-void GetEffectsModel::openEffectUrl(const QString& effectCode)
+void GetEffectsModel::openUrl(const std::string& url) const
 {
-    std::string url = audacity::musehub::GetEffectUrl(effectCode.toStdString());
-    interactive()->openUrl(url);
+    const muse::Ret ret = interactive()->openUrl(url);
+    if (!ret) {
+        LOGE() << ret.toString();
+    }
 }
 
-void GetEffectsModel::openBecomeAPartnerUrl()
+void GetEffectsModel::openEffectUrl(const QString& effectCode) const
 {
-    std::string url = audacity::musehub::GetBecomeAPartnerUrl();
-    interactive()->openUrl(url);
+    const std::string url = audacity::musehub::GetEffectUrl(effectCode.toStdString());
+    openUrl(url);
+}
+
+void GetEffectsModel::openBecomeAPartnerUrl() const
+{
+    const std::string url = audacity::musehub::GetBecomeAPartnerUrl();
+    openUrl(url);
 }
 
 QVariantList GetEffectsModel::effectsGroups() const
@@ -70,7 +77,7 @@ QVariantList GetEffectsModel::effectsGroups() const
     QVariantList result;
     for (int i = 0; i < m_allGroups.size(); ++i) {
         const auto& group = m_allGroups[i];
-        if (m_selectedCategoryIndex != 0 && (m_selectedCategoryIndex - 1) != i) {
+        if (m_selectedCategoryIndex != i) {
             continue;
         }
         QVariantList effectsList;

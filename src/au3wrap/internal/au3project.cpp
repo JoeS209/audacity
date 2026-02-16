@@ -35,7 +35,6 @@
 
 #include <random>
 
-
 using namespace au::au3;
 
 namespace {

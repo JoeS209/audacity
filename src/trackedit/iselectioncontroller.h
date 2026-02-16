@@ -7,6 +7,7 @@
 #include "framework/global/async/channel.h"
 
 #include "trackedit/trackedittypes.h"
+#include "spectrogram/spectrogramtypes.h"
 
 #include <optional>
 
@@ -96,8 +97,9 @@ public:
     virtual muse::async::Channel<secs_t> dataSelectedEndTimeChanged() const = 0;
     virtual muse::async::Channel<secs_t> dataSelectedEndTimeSelected() const = 0;
 
-    virtual std::pair<double, double> frequencySelection(trackedit::TrackId trackId) const = 0;
-    virtual void setFrequencySelection(trackedit::TrackId, const std::pair<double, double>& selection) = 0;
+    virtual spectrogram::FrequencySelection frequencySelection() const = 0;
+    virtual void setFrequencySelection(spectrogram::FrequencySelection) = 0;
+    virtual bool hasFrequencySelection(trackedit::TrackId trackId) const = 0;
     virtual void resetFrequencySelection() = 0;
     virtual muse::async::Channel<trackedit::TrackId> frequencySelectionChanged() const = 0;
 

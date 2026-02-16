@@ -68,4 +68,33 @@ struct ViewInfo {
     const double viewportEndTime = 0.;
     const double pixelsPerSecond = 0.; // aka zoom
 };
+
+struct FrequencySelection {
+    FrequencySelection() = default;
+    FrequencySelection(int trackId, double f1, double f2)
+        : trackId(trackId), startFrequency(std::min(f1, f2)), endFrequency(std::max(f1, f2)) {}
+
+    int trackId = -1;
+    double startFrequency = SelectionInfo::UndefinedFrequency;
+    double endFrequency = SelectionInfo::UndefinedFrequency;
+
+    constexpr bool isValid() const
+    {
+        return trackId != -1
+               && startFrequency != SelectionInfo::UndefinedFrequency
+               && endFrequency != SelectionInfo::UndefinedFrequency;
+    }
+
+    constexpr bool operator==(const FrequencySelection& other) const
+    {
+        return trackId == other.trackId
+               && startFrequency == other.startFrequency
+               && endFrequency == other.endFrequency;
+    }
+
+    constexpr bool operator!=(const FrequencySelection& other) const
+    {
+        return !(*this == other);
+    }
+};
 }

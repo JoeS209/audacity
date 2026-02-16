@@ -483,12 +483,9 @@ void SelectionViewController::setFrequencySelection(double y1, double y2)
         return;
     }
 
-    auto freq1 = spectrogramHitFrequency(*m_spectrogramHit, y1);
-    auto freq2 = spectrogramHitFrequency(*m_spectrogramHit, y2);
-    if (freq1 > freq2) {
-        std::swap(freq1, freq2);
-    }
-    selectionController()->setFrequencySelection(m_spectrogramHit->trackId, std::make_pair(freq1, freq2));
+    const auto freq1 = spectrogramHitFrequency(*m_spectrogramHit, y1);
+    const auto freq2 = spectrogramHitFrequency(*m_spectrogramHit, y2);
+    selectionController()->setFrequencySelection({ m_spectrogramHit->trackId, freq1, freq2 });
 }
 
 bool SelectionViewController::isInExtendedSpectrogram(const spectrogram::SpectrogramHit& hit, double y) const

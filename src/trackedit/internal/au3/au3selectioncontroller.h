@@ -95,8 +95,9 @@ public:
     trackedit::secs_t selectionStartTime() const override;
     void setSelectionStartTime(trackedit::secs_t time) override;
 
-    std::pair<double, double> frequencySelection(trackedit::TrackId trackId) const override;
-    void setFrequencySelection(trackedit::TrackId, const std::pair<double, double>& selection) override;
+    spectrogram::FrequencySelection frequencySelection() const override;
+    void setFrequencySelection(spectrogram::FrequencySelection) override;
+    bool hasFrequencySelection(trackedit::TrackId trackId) const override;
     void resetFrequencySelection() override;
     muse::async::Channel<trackedit::TrackId> frequencySelectionChanged() const override;
 
@@ -162,25 +163,7 @@ private:
     // track focus state
     Val<TrackId> m_focusedTrack = Val<TrackId> { TrackId(-1) };
 
-    struct TrackFrequencySelection {
-        const int trackId;
-        const double startFrequency;
-        const double endFrequency;
-
-        constexpr bool operator==(const TrackFrequencySelection& other) const
-        {
-            return trackId == other.trackId
-                   && startFrequency == other.startFrequency
-                   && endFrequency == other.endFrequency;
-        }
-
-        constexpr bool operator!=(const TrackFrequencySelection& other) const
-        {
-            return !(*this == other);
-        }
-    };
-
-    std::optional<TrackFrequencySelection> m_frequencySelection;
+    spectrogram::FrequencySelection m_frequencySelection;
     muse::async::Channel<trackedit::TrackId> m_frequencySelectionChanged;
 };
 }

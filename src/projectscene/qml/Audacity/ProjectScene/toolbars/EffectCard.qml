@@ -4,6 +4,7 @@ import QtQuick.Controls
 
 import Muse.Ui
 import Muse.UiComponents
+import Muse.GraphicalEffects
 
 Rectangle {
     id: root
@@ -25,7 +26,7 @@ Rectangle {
         readonly property int spaceXXL: 24
 
         readonly property int borderWidth: 1
-        readonly property int borderRadius: 3
+        readonly property int borderRadius: 4
 
         readonly property int cardWidth: 304
         readonly property int cardHeight: 120
@@ -50,6 +51,8 @@ Rectangle {
         spacing: prv.spaceL
 
         Rectangle {
+            id: previewRect
+
             Layout.preferredWidth: prv.iconSize
             Layout.preferredHeight: prv.iconSize
             radius: prv.borderRadius
@@ -66,6 +69,11 @@ Rectangle {
                 asynchronous: true
                 cache: true
                 visible: status === Image.Ready
+
+                layer.enabled: ui.isEffectsAllowed
+                layer.effect: RoundedCornersEffect {
+                    radius: previewRect.radius
+                }
             }
 
             StyledIconLabel {

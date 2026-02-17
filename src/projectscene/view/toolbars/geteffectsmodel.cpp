@@ -4,6 +4,7 @@
 #include "geteffectsmodel.h"
 
 #include <QTimer>
+#include <QPointer>
 
 #include "au3-musehub/MuseHubService.h"
 
@@ -19,8 +20,16 @@ void GetEffectsModel::load()
     setIsLoading(true);
     setHasError(false);
 
-    audacity::musehub::GetEffects([this](std::vector<audacity::musehub::EffectsGroup> groups) {
-        QTimer::singleShot(0, this, [this, groups = std::move(groups)]() {
+    audacity::musehub::GetEffects([this, guard = QPointer(this)](std::vector<audacity::musehub::EffectsGroup> groups)
+    {
+        if (!guard) {
+            return;
+        }
+        QTimer::singleShot(0, this, [this, guard, groups = std::move(groups)]()
+        {
+            if (!guard) {
+                return;
+            }
             m_allGroups.clear();
             m_categories.clear();
 

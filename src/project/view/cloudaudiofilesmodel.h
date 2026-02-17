@@ -3,7 +3,7 @@
 */
 #pragma once
 
-#include "abstractprojectsmodel.h"
+#include "abstractitemmodel.h"
 
 #include "framework/global/async/asyncable.h"
 
@@ -14,7 +14,7 @@
 #include "framework/interactive/iinteractive.h"
 
 namespace au::project {
-class CloudAudioFilesModel : public AbstractProjectsModel, public muse::async::Asyncable, public muse::Injectable
+class CloudAudioFilesModel : public AbstractItemModel, public muse::async::Asyncable, public muse::Injectable
 {
     Q_OBJECT
 

@@ -12,7 +12,7 @@ import Audacity.Project 1.0
 ListItemBlank {
     id: root
 
-    required property var project
+    required property var item
     property alias columns: columnsRepeater.model
 
     property real itemInset: 12
@@ -20,7 +20,7 @@ ListItemBlank {
 
     implicitHeight: 48
 
-    navigation.accessible.name: root.project.title ?? ""
+    navigation.accessible.name: root.item.title ?? ""
     navigation.onActiveChanged: {
         if (navigation.active) {
             root.scrollIntoView()
@@ -42,7 +42,7 @@ ListItemBlank {
             Layout.preferredWidth: 71
             Layout.preferredHeight: 28
 
-            text: root.project.name ?? ""
+            text: root.item.name ?? ""
             font: ui.theme.largeBodyFont
             horizontalAlignment: Text.AlignLeft
         }
@@ -55,7 +55,7 @@ ListItemBlank {
 
                 // These properties are here to give the delegate access to them
                 readonly property AudioListItem listItem: root
-                readonly property var project: root.project
+                readonly property var item: root.item
                 readonly property NavigationPanel navigationPanel: root.navigation.panel
                 readonly property int navigationRow: root.navigation.row
                 readonly property int navigationColumnStart: 100 * (model.index + 1)

@@ -14,6 +14,7 @@ ProjectsView {
 
     function refresh() {
         cloudProjectsModel.reload()
+        prv.updateDesiredRowCount()
     }
 
     CloudProjectsModel {
@@ -32,7 +33,7 @@ ProjectsView {
 
     Connections {
         target: root.item ? root.item.view : null
-        
+
         function onContentYChanged() {
             prv.updateDesiredRowCount()
         }
@@ -41,14 +42,14 @@ ProjectsView {
     QtObject {
         id: prv
         property bool updateDesiredRowCountScheduled: false
-        
+
         readonly property var activeView: root.item
-        
+
         readonly property int remainingFullRowsBelowViewport: {
             if (!activeView || !activeView.view) {
                 return 0
             }
-            
+
             let view = activeView.view
             let columns = view.columns || 1
             let cellHeight = view.cellHeight || 100
@@ -59,40 +60,40 @@ ProjectsView {
             let currentScrollRow = Math.max(0, Math.floor(scrolledContent / cellHeight))
             let visibleRows = Math.ceil((view.height + (scrolledContent % cellHeight)) / cellHeight)
             let viewportBottomRow = currentScrollRow + visibleRows
- 
+
             return Math.max(0, totalDataRows - viewportBottomRow)
         }
-        
+
         readonly property bool isSatisfied: remainingFullRowsBelowViewport >= 2
-        
+
         onIsSatisfiedChanged: {
             if (!isSatisfied) {
                 updateDesiredRowCount()
             }
         }
-        
+
         function updateDesiredRowCount() {
             if (updateDesiredRowCountScheduled) {
                 return
             }
-            
+
             if (isSatisfied || !cloudProjectsModel.hasMore) {
                 return
             }
             
             updateDesiredRowCountScheduled = true
-            
+
             Qt.callLater(function() {
                 let view = activeView ? activeView.view : null
                 let columns = view ? (view.columns || 1) : 1
                 
                 let rowsToAdd = Math.max(3 - remainingFullRowsBelowViewport, 1)
                 let newDesiredRowCount = cloudProjectsModel.rowCount + rowsToAdd * columns
-                
+ 
                 if (cloudProjectsModel.desiredRowCount < newDesiredRowCount) {
                     cloudProjectsModel.desiredRowCount = newDesiredRowCount
                 }
-                
+
                 updateDesiredRowCountScheduled = false
             })
         }
@@ -177,7 +178,7 @@ ProjectsView {
 
                     delegate: StyledTextLabel {
                         id: modifiedLabel
-                        text: project.timeSinceModified ?? ""
+                        text: item.timeSinceModified ?? ""
 
                         font.capitalization: Font.AllUppercase
                         horizontalAlignment: Text.AlignLeft
@@ -216,7 +217,7 @@ ProjectsView {
 
                     delegate: StyledTextLabel {
                         id: sizeLabel
-                        text: Boolean(project.fileSize) ? project.fileSize : "-"
+                        text: Boolean(item.fileSize) ? item.fileSize : "-"
 
                         font: ui.theme.largeBodyFont
                         horizontalAlignment: Text.AlignLeft
@@ -228,7 +229,7 @@ ProjectsView {
                                 row: navigationRow
                                 column: navigationColumnStart
                                 enabled: sizeLabel.visible && sizeLabel.enabled && !sizeLabel.isEmpty
-                                accessible.name: sizeColumn.header + ": " + (Boolean(project.fileSize) ? project.fileSize : qsTrc("global", "Unknown"))
+                                accessible.name: sizeColumn.header + ": " + (Boolean(item.fileSize) ? item.fileSize : qsTrc("global", "Unknown"))
                                 accessible.role: MUAccessible.StaticText
 
                                 onActiveChanged: {

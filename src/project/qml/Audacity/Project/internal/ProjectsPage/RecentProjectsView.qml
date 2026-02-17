@@ -110,7 +110,7 @@ ProjectsView {
 
                     delegate: StyledTextLabel {
                         id: modifiedLabel
-                        text: project.timeSinceModified ?? ""
+                        text: item.timeSinceModified ?? ""
 
                         font.capitalization: Font.AllUppercase
                         horizontalAlignment: Text.AlignLeft
@@ -149,7 +149,7 @@ ProjectsView {
 
                     delegate: StyledTextLabel {
                         id: sizeLabel
-                        text: Boolean(project.fileSize) ? project.fileSize : "-"
+                        text: Boolean(item.fileSize) ? item.fileSize : "-"
 
                         font: ui.theme.largeBodyFont
                         horizontalAlignment: Text.AlignLeft
@@ -161,7 +161,7 @@ ProjectsView {
                                 row: navigationRow
                                 column: navigationColumnStart
                                 enabled: sizeLabel.visible && sizeLabel.enabled && !sizeLabel.isEmpty
-                                accessible.name: sizeColumn.header + ": " + (Boolean(project.fileSize) ? project.fileSize : qsTrc("global", "Unknown"))
+                                accessible.name: sizeColumn.header + ": " + (Boolean(item.fileSize) ? item.fileSize : qsTrc("global", "Unknown"))
                                 accessible.role: MUAccessible.StaticText
 
                                 onActiveChanged: {

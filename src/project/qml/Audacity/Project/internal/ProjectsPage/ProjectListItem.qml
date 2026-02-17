@@ -30,7 +30,7 @@ import Audacity.Project 1.0
 ListItemBlank {
     id: root
 
-    required property var project
+    required property var item
     property alias columns: columnsRepeater.model
 
     property alias thumbnailComponent: thumbnailLoader.sourceComponent
@@ -43,7 +43,7 @@ ListItemBlank {
 
     implicitHeight: 64
 
-    navigation.accessible.name: root.project.name ?? ""
+    navigation.accessible.name: root.item.name ?? ""
     navigation.onActiveChanged: {
         if (navigation.active) {
             root.scrollIntoView()
@@ -69,9 +69,9 @@ ListItemBlank {
                 Layout.preferredHeight: 40
 
                 sourceComponent: ProjectThumbnail {
-                    path: root.project.path ?? ""
-                    suffix: root.project.suffix ?? ""
-                    thumbnailUrl: root.project.thumbnailUrl ? Qt.resolvedUrl("file:" + root.project.thumbnailUrl) : ""
+                    path: root.item.path ?? ""
+                    suffix: root.item.suffix ?? ""
+                    thumbnailUrl: root.item.thumbnailUrl ? Qt.resolvedUrl("file:" + root.item.thumbnailUrl) : ""
                     placeholder: root.placeholder
                 }
 
@@ -84,17 +84,16 @@ ListItemBlank {
             StyledTextLabel {
                 Layout.fillWidth: true
 
-                text: root.project.name ?? ""
+                text: root.item.name ?? ""
                 font: ui.theme.largeBodyFont
                 horizontalAlignment: Text.AlignLeft
             }
 
             // Loader {
-            //     active: root.project.isCloud ?? false
+            //     active: root.item.isCloud ?? false
 
             //     sourceComponent: RowLayout {
-            //         visible: root.project.isCloud
-
+            //         visible: root.item.isCloud
             //         spacing: 24
 
             //         // CloudProjectStatusWatcher {
@@ -102,7 +101,7 @@ ListItemBlank {
             //         // }
 
             //         Component.onCompleted: {
-            //             cloudProjectStatusWatcher.load(root.project.projectId)
+            //             cloudProjectStatusWatcher.load(root.item.projectId)
             //         }
 
             //         ProgressBar {
@@ -160,7 +159,7 @@ ListItemBlank {
 
                 // These properties are here to give the delegate access to them
                 readonly property ProjectListItem listItem: root
-                readonly property var project: root.project
+                readonly property var item: root.item
                 readonly property NavigationPanel navigationPanel: root.navigation.panel
                 readonly property int navigationRow: root.navigation.row
                 readonly property int navigationColumnStart: 100 * (model.index + 1)

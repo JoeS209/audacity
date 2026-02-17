@@ -21,7 +21,7 @@ ProjectsView {
 
     CloudAudioFilesModel {
         id: cloudAudioFilesModel
-        
+    
         onStateChanged: {
             if (cloudAudioFilesModel.state === CloudAudioFilesModel.Fine) {
                 prv.updateDesiredRowCount()
@@ -32,7 +32,7 @@ ProjectsView {
     Component.onCompleted: {
         cloudAudioFilesModel.load()
     }
- 
+
     Connections {
         target: root.item ? root.item.view : null
         
@@ -45,14 +45,14 @@ ProjectsView {
         id: prv
         property string gridPlaceholderFile: "qrc:/resources/AudioFilePlaceholder.svg"
         property bool updateDesiredRowCountScheduled: false
-        
+
         readonly property var activeView: root.item
-        
+
         readonly property int remainingFullRowsBelowViewport: {
             if (!activeView || !activeView.view) {
                 return 0
             }
-            
+
             let view = activeView.view
             let columns = view.columns || 1
             let cellHeight = view.cellHeight || 100
@@ -63,40 +63,40 @@ ProjectsView {
             let currentScrollRow = Math.max(0, Math.floor(scrolledContent / cellHeight))
             let visibleRows = Math.ceil((view.height + (scrolledContent % cellHeight)) / cellHeight)
             let viewportBottomRow = currentScrollRow + visibleRows
- 
+
             return Math.max(0, totalDataRows - viewportBottomRow)
         }
-        
+
         readonly property bool isSatisfied: remainingFullRowsBelowViewport >= 2
-        
+
         onIsSatisfiedChanged: {
             if (!isSatisfied) {
                 updateDesiredRowCount()
             }
         }
-        
+
         function updateDesiredRowCount() {
             if (updateDesiredRowCountScheduled) {
                 return
             }
-            
+
             if (isSatisfied || !cloudAudioFilesModel.hasMore) {
                 return
             }
-            
+
             updateDesiredRowCountScheduled = true
-            
+
             Qt.callLater(function() {
                 let view = activeView ? activeView.view : null
                 let columns = view ? (view.columns || 1) : 1
-                
+
                 let rowsToAdd = Math.max(3 - remainingFullRowsBelowViewport, 1)
                 let newDesiredRowCount = cloudAudioFilesModel.rowCount + rowsToAdd * columns
-                
+
                 if (cloudAudioFilesModel.desiredRowCount < newDesiredRowCount) {
                     cloudAudioFilesModel.desiredRowCount = newDesiredRowCount
                 }
-                
+
                 updateDesiredRowCountScheduled = false
             })
         }
@@ -160,7 +160,7 @@ ProjectsView {
             sideMargin: root.sideMargin
 
             itemNormalColor: ui.theme.extra["white_color"]
-            itemHoverHitColor: ui.theme.buttonColor
+            itemHoverHitColor: ui.theme.extra["white_color"]
             itemSpacing: 16
 
             navigation.section: root.navigationSection
@@ -182,7 +182,7 @@ ProjectsView {
 
                     delegate: StyledTextLabel {
                         id: modifiedLabel
-                        text: project.timeSinceModified ?? ""
+                        text: item.timeSinceModified ?? ""
 
                         font.capitalization: Font.AllUppercase
                         horizontalAlignment: Text.AlignLeft

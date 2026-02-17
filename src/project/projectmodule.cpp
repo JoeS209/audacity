@@ -109,8 +109,8 @@ void ProjectModule::registerResources()
 void ProjectModule::registerUiTypes()
 {
     qmlRegisterType<ProjectsPageModel>("Audacity.Project", 1, 0, "ProjectsPageModel");
-    qmlRegisterUncreatableType<AbstractProjectsModel>("Audacity.Project", 1, 0, "AbstractProjectsModel",
-                                                      "Not creatable as it is an abstract type");
+    qmlRegisterUncreatableType<AbstractItemModel>("Audacity.Project", 1, 0, "AbstractItemModel",
+                                                  "Not creatable as it is an abstract type");
     qmlRegisterType<RecentProjectsModel>("Audacity.Project", 1, 0, "RecentProjectsModel");
     qmlRegisterType<CloudProjectsModel>("Audacity.Project", 1, 0, "CloudProjectsModel");
     qmlRegisterType<CloudAudioFilesModel>("Audacity.Project", 1, 0, "CloudAudioFilesModel");

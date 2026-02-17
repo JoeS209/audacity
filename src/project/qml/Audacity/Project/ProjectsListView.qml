@@ -32,7 +32,7 @@ import "internal/ProjectsPage"
 Item {
     id: root
 
-    property AbstractProjectsModel model
+    property AbstractItemModel model
     property list<ColumnItem> columns
     property alias showNewProjectItem: newProjectItem.visible
     property string searchText
@@ -102,7 +102,7 @@ Item {
             navigation.row: 0
             navigation.column: 0
 
-            project: {
+            item: {
                 "name": qsTrc("project", "New project")
             }
 
@@ -223,7 +223,7 @@ Item {
                         navigation.column: 0
 
                         onClicked: {
-                            root.openProjectRequested(project.path, project.name)
+                            root.openProjectRequested(item.path, item.name)
                         }
                     }
                 }

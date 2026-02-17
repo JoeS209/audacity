@@ -19,13 +19,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef AU_PROJECT_ABSTRACTPROJECTSMODEL_H
-#define AU_PROJECT_ABSTRACTPROJECTSMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 
 namespace au::project {
-class AbstractProjectsModel : public QAbstractListModel
+class AbstractItemModel : public QAbstractListModel
 {
     Q_OBJECT
 
@@ -33,7 +32,7 @@ class AbstractProjectsModel : public QAbstractListModel
     Q_PROPERTY(QList<int> nonProjectItemIndices READ nonProjectItemIndices NOTIFY rowCountChanged)
 
 public:
-    explicit AbstractProjectsModel(QObject* parent = nullptr);
+    explicit AbstractItemModel(QObject* parent = nullptr);
 
     Q_INVOKABLE virtual void load() = 0;
 
@@ -50,7 +49,7 @@ protected:
     enum Roles {
         NameRole = Qt::UserRole + 1,
         IsNoResultsFoundRole,
-        ProjectRole
+        ItemRole
     };
 
     static const QString NAME_KEY;
@@ -62,12 +61,10 @@ protected:
     static const QString IS_CREATE_NEW_KEY;
     static const QString IS_NO_RESULTS_FOUND_KEY;
     static const QString IS_CLOUD_KEY;
-    static const QString CLOUD_PROJECT_ID_KEY;
+    static const QString CLOUD_ITEM_ID_KEY;
     static const QString CLOUD_VISIBILITY_KEY;
     static const QString CLOUD_VIEW_COUNT_KEY;
 
     std::vector<QVariantMap> m_items;
 };
 }
-
-#endif // AU_PROJECT_ABSTRACTPROJECTSMODEL_H

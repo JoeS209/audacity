@@ -12,11 +12,11 @@ using namespace muse;
 using namespace au::project;
 
 namespace {
-constexpr int BATCH_SIZE = 8;
+constexpr int BATCH_SIZE = 20;
 }
 
 CloudAudioFilesModel::CloudAudioFilesModel(QObject* parent)
-    : AbstractProjectsModel(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
+    : AbstractItemModel(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
 {
 }
 
@@ -134,14 +134,13 @@ void CloudAudioFilesModel::loadItemsIfNecessary()
                     obj[PATH_KEY] = ""; //configuration()->cloudProjectPath(item.id).toQString();
                     obj[SUFFIX_KEY] = "";
                     obj[IS_CLOUD_KEY] = true;
-                    obj[CLOUD_PROJECT_ID_KEY] = QString::fromStdString(item.id);
+                    obj[CLOUD_ITEM_ID_KEY] = QString::fromStdString(item.id);
                     obj[TIME_SINCE_MODIFIED_KEY]
                         = DataFormatter::formatTimeSince(Date::fromQDate(QDateTime::fromSecsSinceEpoch(
                                                                              static_cast<qint64>(item.created)).date())).toQString();
                     obj[THUMBNAIL_URL_KEY] = "";
                     obj[IS_CREATE_NEW_KEY] = false;
                     obj[IS_NO_RESULTS_FOUND_KEY] = false;
-                    obj[IS_CLOUD_KEY] = true;
 
                     m_items.push_back(obj);
                 }

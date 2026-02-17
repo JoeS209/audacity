@@ -14,7 +14,7 @@ import "internal/ProjectsPage"
 Item {
     id: root
 
-    property AbstractProjectsModel model
+    property AbstractItemModel model
     property list<ColumnItem> columns
     property string searchText
 

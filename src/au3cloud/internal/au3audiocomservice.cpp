@@ -79,14 +79,22 @@ muse::async::Promise<ProjectList> Au3AudioComService::downloadProjectList(size_t
                                                                           const FetchOptions& options)
 {
     if (m_projectsPerBatch != projectsPerBatch) {
-        auto guard = std::lock_guard(m_cacheMutex);
+        std::lock_guard guard(m_cacheMutex);
         m_projectListCache.clear();
         m_projectsPerBatch = projectsPerBatch;
     }
 
     if (options.cachePolicy == CachePolicy::CacheFirst) {
-        if (auto iter = m_projectListCache.find(batchNumber); iter != m_projectListCache.end()) {
-            const auto& cachedProject = iter->second;
+        std::optional<CachedProjectItem> cacheProjectOpt = {};
+        {
+            std::lock_guard guard(m_cacheMutex);
+            if (auto iter = m_projectListCache.find(batchNumber); iter != m_projectListCache.end()) {
+                cacheProjectOpt = iter->second;
+            }
+        }
+
+        if (cacheProjectOpt.has_value()) {
+            const auto& cachedProject = cacheProjectOpt.value();
             if (options.maxCacheAge.has_value()) {
                 const auto now = std::chrono::system_clock::now();
                 const auto cacheAge = now - cachedProject.timestamp;
@@ -145,8 +153,16 @@ muse::async::Promise<AudioList> Au3AudioComService::downloadAudioList(size_t aud
     }
 
     if (options.cachePolicy == CachePolicy::CacheFirst) {
-        if (auto iter = m_audioListCache.find(batchNumber); iter != m_audioListCache.end()) {
-            const auto& cachedAudio = iter->second;
+        std::optional<CachedAudioItem> cachedAudioOpt = {};
+        {
+            std::lock_guard guard(m_cacheMutex);
+            if (auto iter = m_audioListCache.find(batchNumber); iter != m_audioListCache.end()) {
+                cachedAudioOpt = iter->second;
+            }
+        }
+
+        if (cachedAudioOpt.has_value()) {
+            const auto& cachedAudio = cachedAudioOpt.value();
             if (options.maxCacheAge.has_value()) {
                 const auto now = std::chrono::system_clock::now();
                 const auto cacheAge = now - cachedAudio.timestamp;

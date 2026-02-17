@@ -43,6 +43,11 @@ void GetEffectsModel::load()
                     effectData.title = QString::fromStdString(effect.title);
                     effectData.subtitle = QString::fromStdString(effect.subtitle);
                     effectData.category = QString::fromStdString(effect.category);
+                    if (effectData.code == "openvino-ai-tools") {
+                        // TODO: add support for OpenVino AI Tools in Audacity 4
+                        // disable Open Vino AI Tools from listing until support is added
+                        continue;
+                    }
                     groupData.effects.append(effectData);
                 }
                 if (!groupData.effects.isEmpty()) {

@@ -38,6 +38,10 @@ StyledDialogView {
 
     GetEffectsModel {
         id: effectsModel
+
+        onSelectedCategoryIndexChanged: {
+            flickable.contentY = -prv.spaceXL
+        }
     }
 
     Component.onCompleted: {

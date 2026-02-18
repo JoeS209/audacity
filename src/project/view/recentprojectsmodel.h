@@ -22,7 +22,7 @@
 #ifndef AU_PROJECT_RECENTPROJECTSMODEL_H
 #define AU_PROJECT_RECENTPROJECTSMODEL_H
 
-#include "abstractprojectsmodel.h"
+#include "abstractitemmodel.h"
 
 #include "async/asyncable.h"
 
@@ -32,7 +32,7 @@
 #include "io/ifilesystem.h"
 
 namespace au::project {
-class RecentProjectsModel : public AbstractProjectsModel, public muse::async::Asyncable
+class RecentProjectsModel : public AbstractItemModel, public muse::async::Asyncable
 {
     Q_OBJECT
 

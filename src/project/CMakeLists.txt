@@ -87,10 +87,12 @@ set(MODULE_SRC
 
     ${CMAKE_CURRENT_LIST_DIR}/view/projectspagemodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/projectspagemodel.h
-    ${CMAKE_CURRENT_LIST_DIR}/view/abstractprojectsmodel.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/view/abstractprojectsmodel.h
+    ${CMAKE_CURRENT_LIST_DIR}/view/abstractitemmodel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/view/abstractitemmodel.h
     ${CMAKE_CURRENT_LIST_DIR}/view/recentprojectsmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/recentprojectsmodel.h
+    ${CMAKE_CURRENT_LIST_DIR}/view/cloudaudiofilesmodel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/view/cloudaudiofilesmodel.h
     ${CMAKE_CURRENT_LIST_DIR}/view/cloudprojectsmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/cloudprojectsmodel.h
     ${CMAKE_CURRENT_LIST_DIR}/view/cloudprojectstatuswatcher.cpp

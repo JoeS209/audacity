@@ -31,11 +31,12 @@ import "internal/ProjectsPage"
 Item {
     id: root
 
-    property AbstractProjectsModel model
+    property AbstractItemModel model
     property string searchText
 
     property color backgroundColor: ui.theme.backgroundSecondaryColor
     property real sideMargin: 46
+    property string placeholder: ""
 
     property alias view: view
 
@@ -152,21 +153,23 @@ Item {
                     }
                 }
 
-                name: project.name
-                path: project.path ?? ""
-                suffix: project.suffix ?? ""
-                thumbnailUrl: Qt.resolvedUrl("file:" + project.thumbnailUrl) ?? ""
-                isCreateNew: project.isCreateNew
-                isNoResultsFound: project.isNoResultsFound
-                //isCloud: project.isCloud
-                cloudProjectId: project.projectId ?? 0
-                timeSinceModified: project.timeSinceModified ?? ""
+                placeholder: root.placeholder
+
+                name: item.name
+                path: item.path ?? ""
+                suffix: item.suffix ?? ""
+                thumbnailUrl: item.thumbnailUrl ? Qt.resolvedUrl("file:" + item.thumbnailUrl) : ""
+                isCreateNew: item.isCreateNew
+                isNoResultsFound: item.isNoResultsFound
+                //isCloud: item.isCloud
+                cloudProjectId: item.itemId ?? 0
+                timeSinceModified: item.timeSinceModified ?? ""
 
                 onClicked: {
                     if (isCreateNew) {
                         root.createNewProjectRequested()
                     } else if (!isNoResultsFound) {
-                        root.openProjectRequested(project.path, project.name)
+                        root.openProjectRequested(item.path, item.name)
                     }
                 }
             }

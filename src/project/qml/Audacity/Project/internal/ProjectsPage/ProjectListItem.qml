@@ -30,7 +30,7 @@ import Audacity.Project 1.0
 ListItemBlank {
     id: root
 
-    required property var project
+    required property var item
     property alias columns: columnsRepeater.model
 
     property alias thumbnailComponent: thumbnailLoader.sourceComponent
@@ -39,9 +39,11 @@ ListItemBlank {
     property real columnSpacing: 44
     property alias showBottomBorder: bottomBorder.visible
 
+    property string placeholder: ""
+
     implicitHeight: 64
 
-    navigation.accessible.name: root.project.name ?? ""
+    navigation.accessible.name: root.item.name ?? ""
     navigation.onActiveChanged: {
         if (navigation.active) {
             root.scrollIntoView()
@@ -67,9 +69,10 @@ ListItemBlank {
                 Layout.preferredHeight: 40
 
                 sourceComponent: ProjectThumbnail {
-                    path: root.project.path ?? ""
-                    suffix: root.project.suffix ?? ""
-                    thumbnailUrl: Qt.resolvedUrl("file:" + root.project.thumbnailUrl) ?? ""
+                    path: root.item.path ?? ""
+                    suffix: root.item.suffix ?? ""
+                    thumbnailUrl: root.item.thumbnailUrl ? Qt.resolvedUrl("file:" + root.item.thumbnailUrl) : ""
+                    placeholder: root.placeholder
                 }
 
                 layer.enabled: true
@@ -81,72 +84,71 @@ ListItemBlank {
             StyledTextLabel {
                 Layout.fillWidth: true
 
-                text: root.project.name ?? ""
+                text: root.item.name ?? ""
                 font: ui.theme.largeBodyFont
                 horizontalAlignment: Text.AlignLeft
             }
 
-            Loader {
-                active: root.project.isCloud ?? false
+            // Loader {
+            //     active: root.item.isCloud ?? false
 
-                sourceComponent: RowLayout {
-                    visible: root.project.isCloud
+            //     sourceComponent: RowLayout {
+            //         visible: root.item.isCloud
+            //         spacing: 24
 
-                    spacing: 24
+            //         // CloudProjectStatusWatcher {
+            //         //     id: cloudProjectStatusWatcher
+            //         // }
 
-                    // CloudProjectStatusWatcher {
-                    //     id: cloudProjectStatusWatcher
-                    // }
+            //         Component.onCompleted: {
+            //             cloudProjectStatusWatcher.load(root.item.projectId)
+            //         }
 
-                    Component.onCompleted: {
-                        cloudProjectStatusWatcher.load(root.project.projectId)
-                    }
+            //         ProgressBar {
+            //             Layout.preferredWidth: 118
+            //             Layout.preferredHeight: 16
 
-                    ProgressBar {
-                        Layout.preferredWidth: 118
-                        Layout.preferredHeight: 16
+            //             visible: cloudProjectStatusWatcher.isProgress
 
-                        visible: cloudProjectStatusWatcher.isProgress
+            //             from: 0
+            //             to: cloudProjectStatusWatcher.progressTotal
+            //             value: cloudProjectStatusWatcher.progressCurrent
 
-                        from: 0
-                        to: cloudProjectStatusWatcher.progressTotal
-                        value: cloudProjectStatusWatcher.progressCurrent
+            //             navigation.panel: root.navigation.panel
+            //             navigation.row: root.navigation.row
+            //             navigation.column: 2
+            //             navigation.onActiveChanged: {
+            //                 if (navigation.active) {
+            //                     root.scrollIntoView()
+            //                 }
+            //             }
+            //         }
 
-                        navigation.panel: root.navigation.panel
-                        navigation.row: root.navigation.row
-                        navigation.column: 2
-                        navigation.onActiveChanged: {
-                            if (navigation.active) {
-                                root.scrollIntoView()
-                            }
-                        }
-                    }
+            //         CloudProjectIndicatorButton {
+            //             Layout.alignment: Qt.AlignTrailing | Qt.AlignVCenter
 
-                    CloudProjectIndicatorButton {
-                        Layout.alignment: Qt.AlignTrailing | Qt.AlignVCenter
+            //             isProgress: cloudProjectStatusWatcher.isProgress
+            //             isDownloadedAndUpToDate: cloudProjectStatusWatcher.isDownloadedAndUpToDate
 
-                        isProgress: cloudProjectStatusWatcher.isProgress
-                        isDownloadedAndUpToDate: cloudProjectStatusWatcher.isDownloadedAndUpToDate
+            //             navigation.panel: root.navigation.panel
+            //             navigation.row: root.navigation.row
+            //             navigation.column: 3
+            //             navigation.onActiveChanged: {
+            //                 if (navigation.active) {
+            //                     root.scrollIntoView()
+            //                 }
+            //             }
 
-                        navigation.panel: root.navigation.panel
-                        navigation.row: root.navigation.row
-                        navigation.column: 3
-                        navigation.onActiveChanged: {
-                            if (navigation.active) {
-                                root.scrollIntoView()
-                            }
-                        }
-
-                        onClicked: {
-                            if (isProgress) {
-                                cloudProjectStatusWatcher.cancel()
-                            } else {
-                                root.clicked(null)
-                            }
-                        }
-                    }
-                }
-            }
+            //             onClicked: {
+            //                 if (isProgress) {
+            //                     cloudProjectStatusWatcher.cancel()
+            //                 } else {
+            //                     root.clicked(null)
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         Repeater {
@@ -157,7 +159,7 @@ ListItemBlank {
 
                 // These properties are here to give the delegate access to them
                 readonly property ProjectListItem listItem: root
-                readonly property var project: root.project
+                readonly property var item: root.item
                 readonly property NavigationPanel navigationPanel: root.navigation.panel
                 readonly property int navigationRow: root.navigation.row
                 readonly property int navigationColumnStart: 100 * (model.index + 1)

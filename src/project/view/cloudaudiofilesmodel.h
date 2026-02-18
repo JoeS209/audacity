@@ -14,7 +14,7 @@
 #include "framework/interactive/iinteractive.h"
 
 namespace au::project {
-class CloudProjectsModel : public AbstractItemModel, public muse::async::Asyncable, public muse::Injectable
+class CloudAudioFilesModel : public AbstractItemModel, public muse::async::Asyncable, public muse::Injectable
 {
     Q_OBJECT
 
@@ -30,7 +30,7 @@ class CloudProjectsModel : public AbstractItemModel, public muse::async::Asyncab
     Q_PROPERTY(int desiredRowCount READ desiredRowCount WRITE setDesiredRowCount NOTIFY desiredRowCountChanged)
 
 public:
-    CloudProjectsModel(QObject* parent = nullptr);
+    CloudAudioFilesModel(QObject* parent = nullptr);
 
     enum class State {
         Fine,

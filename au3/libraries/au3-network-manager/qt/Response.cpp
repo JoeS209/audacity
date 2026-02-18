@@ -112,7 +112,11 @@ void Response::abort() noexcept
     }
 
     if (mReply && !mReply->isFinished()) {
-        mReply->abort();
+        QMetaObject::invokeMethod(mReply, [reply = mReply]() {
+            if (reply) {
+                reply->abort();
+            }
+        });
     }
 }
 

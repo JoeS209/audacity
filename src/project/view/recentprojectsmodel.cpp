@@ -31,7 +31,7 @@ using namespace muse;
 using namespace au::project;
 
 RecentProjectsModel::RecentProjectsModel(QObject* parent)
-    : AbstractProjectsModel(parent)
+    : AbstractItemModel(parent)
 {
 }
 

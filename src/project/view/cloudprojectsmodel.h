@@ -1,40 +1,28 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-only
- * Audacity-CLA-applies
- *
- * Audacity
- * Music Composition & Notation
- *
- * Copyright (C) 2024 Audacity BVBA and others
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-#ifndef AU_PROJECT_CLOUDPROJECTSMODEL_H
-#define AU_PROJECT_CLOUDPROJECTSMODEL_H
+* Audacity: A Digital Audio Editor
+*/
+#pragma once
 
-#include "abstractprojectsmodel.h"
+#include "abstractitemmodel.h"
 
-#include "async/asyncable.h"
+#include "framework/global/async/asyncable.h"
 
 #include "modularity/ioc.h"
 #include "iprojectconfiguration.h"
+#include "au3cloud/iau3audiocomservice.h"
+#include "au3cloud/iauthorization.h"
+#include "framework/interactive/iinteractive.h"
 
 namespace au::project {
-class CloudProjectsModel : public AbstractProjectsModel, public muse::async::Asyncable
+class CloudProjectsModel : public AbstractItemModel, public muse::async::Asyncable, public muse::Injectable
 {
     Q_OBJECT
 
     muse::GlobalInject<au::project::IProjectConfiguration> configuration;
+
+    muse::Inject<au::au3cloud::IAu3AudioComService> audioComService { this };
+    muse::Inject<au::au3cloud::IAuthorization> authorization { this };
+    muse::Inject<muse::IInteractive> interactive { this };
 
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(bool hasMore READ hasMore NOTIFY hasMoreChanged)
@@ -80,7 +68,7 @@ private:
     size_t m_totalItems = muse::nidx;
 
     int m_desiredRowCount = 0;
+
+    uint64_t m_reloadGeneration = 0;
 };
 }
-
-#endif // AU_PROJECT_CLOUDPROJECTSMODEL_H

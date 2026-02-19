@@ -19,32 +19,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "abstractprojectsmodel.h"
+#include "abstractitemmodel.h"
 
 #include "uicomponents/view/modelutils.h"
 
 using namespace au::project;
 
-const QString AbstractProjectsModel::NAME_KEY("name");
-const QString AbstractProjectsModel::PATH_KEY("path");
-const QString AbstractProjectsModel::SUFFIX_KEY("suffix");
-const QString AbstractProjectsModel::FILE_SIZE_KEY("fileSize");
-const QString AbstractProjectsModel::THUMBNAIL_URL_KEY("thumbnailUrl");
-const QString AbstractProjectsModel::TIME_SINCE_MODIFIED_KEY("timeSinceModified");
-const QString AbstractProjectsModel::IS_CREATE_NEW_KEY("isCreateNew");
-const QString AbstractProjectsModel::IS_NO_RESULTS_FOUND_KEY("isNoResultsFound");
-const QString AbstractProjectsModel::IS_CLOUD_KEY("isCloud");
-const QString AbstractProjectsModel::CLOUD_PROJECT_ID_KEY("projectId");
-const QString AbstractProjectsModel::CLOUD_VISIBILITY_KEY("cloudVisibility");
-const QString AbstractProjectsModel::CLOUD_VIEW_COUNT_KEY("cloudViewCount");
+const QString AbstractItemModel::NAME_KEY("name");
+const QString AbstractItemModel::PATH_KEY("path");
+const QString AbstractItemModel::SUFFIX_KEY("suffix");
+const QString AbstractItemModel::FILE_SIZE_KEY("fileSize");
+const QString AbstractItemModel::THUMBNAIL_URL_KEY("thumbnailUrl");
+const QString AbstractItemModel::TIME_SINCE_MODIFIED_KEY("timeSinceModified");
+const QString AbstractItemModel::IS_CREATE_NEW_KEY("isCreateNew");
+const QString AbstractItemModel::IS_NO_RESULTS_FOUND_KEY("isNoResultsFound");
+const QString AbstractItemModel::IS_CLOUD_KEY("isCloud");
+const QString AbstractItemModel::CLOUD_ITEM_ID_KEY("itemId");
+const QString AbstractItemModel::CLOUD_VISIBILITY_KEY("cloudVisibility");
+const QString AbstractItemModel::CLOUD_VIEW_COUNT_KEY("cloudViewCount");
 
-AbstractProjectsModel::AbstractProjectsModel(QObject* parent)
+AbstractItemModel::AbstractItemModel(QObject* parent)
     : QAbstractListModel(parent)
 {
-    muse::uicomponents::ModelUtils::connectRowCountChangedSignal(this, &AbstractProjectsModel::rowCountChanged);
+    muse::uicomponents::ModelUtils::connectRowCountChangedSignal(this, &AbstractItemModel::rowCountChanged);
 }
 
-QVariant AbstractProjectsModel::data(const QModelIndex& index, int role) const
+QVariant AbstractItemModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= rowCount()) {
         return QVariant();
@@ -55,29 +55,29 @@ QVariant AbstractProjectsModel::data(const QModelIndex& index, int role) const
     switch (role) {
     case NameRole: return item[NAME_KEY];
     case IsNoResultsFoundRole: return item[IS_NO_RESULTS_FOUND_KEY];
-    case ProjectRole: return item;
+    case ItemRole: return item;
     }
 
     return QVariant();
 }
 
-int AbstractProjectsModel::rowCount(const QModelIndex&) const
+int AbstractItemModel::rowCount(const QModelIndex&) const
 {
     return static_cast<int>(m_items.size());
 }
 
-QHash<int, QByteArray> AbstractProjectsModel::roleNames() const
+QHash<int, QByteArray> AbstractItemModel::roleNames() const
 {
     static const QHash<int, QByteArray> ROLE_NAMES {
         { NameRole, NAME_KEY.toUtf8() },
         { IsNoResultsFoundRole, IS_NO_RESULTS_FOUND_KEY.toUtf8() },
-        { ProjectRole, "project" }
+        { ItemRole, "item" }
     };
 
     return ROLE_NAMES;
 }
 
-QList<int> AbstractProjectsModel::nonProjectItemIndices() const
+QList<int> AbstractItemModel::nonProjectItemIndices() const
 {
     return {};
 }

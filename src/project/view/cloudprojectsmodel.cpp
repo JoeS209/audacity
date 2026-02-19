@@ -1,35 +1,22 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-only
- * Audacity-CLA-applies
- *
- * Audacity
- * Music Composition & Notation
- *
- * Copyright (C) 2024 Audacity BVBA and others
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+* Audacity: A Digital Audio Editor
+*/
 #include "cloudprojectsmodel.h"
 
-#include "dataformatter.h"
+#include "framework/global/dataformatter.h"
+#include "framework/global/types/datetime.h"
 
-#include "log.h"
+#include "au3cloud/cloudtypes.h"
 
 using namespace muse;
 using namespace au::project;
 
+namespace {
+constexpr int BATCH_SIZE = 20;
+}
+
 CloudProjectsModel::CloudProjectsModel(QObject* parent)
-    : AbstractProjectsModel(parent)
+    : AbstractItemModel(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
 {
 }
 
@@ -40,22 +27,30 @@ void CloudProjectsModel::load()
             setState(State::Loading);
             loadItemsIfNecessary();
         } else {
+            interactive()->open("audacity://signin/audiocom");
             setState(State::NotSignedIn);
         }
     };
 
-    // TODO: update when audio.com integration is in place
-    ValCh<bool> authorized = { false };
+    auto isAuthorized = [](au::au3cloud::AuthState authState) {
+        return std::holds_alternative<au::au3cloud::Authorized>(authState);
+    };
 
-    onUserAuthorizedChanged(authorized.val);
+    onUserAuthorizedChanged(isAuthorized(authorization()->authState().val));
 
-    authorized.ch.onReceive(this, onUserAuthorizedChanged);
+    authorization()->authState().ch.onReceive(this, [isAuthorized, onUserAuthorizedChanged](au::au3cloud::AuthState authState) {
+        onUserAuthorizedChanged(isAuthorized(std::move(authState)));
+    });
 
     connect(this, &CloudProjectsModel::desiredRowCountChanged, this, &CloudProjectsModel::loadItemsIfNecessary);
 }
 
 void CloudProjectsModel::reload()
 {
+    audioComService()->clearProjectListCache();
+    m_isWaitingForPromise = false;
+    ++m_reloadGeneration;
+
     beginResetModel();
 
     m_items.clear();
@@ -120,46 +115,54 @@ void CloudProjectsModel::loadItemsIfNecessary()
 
         m_isWaitingForPromise = true;
 
-        // museScoreComService()->downloadScoresList(BATCH_SIZE, static_cast<int>(m_items.size()) / BATCH_SIZE + 1)
-        // .onResolve(this, [this](const cloud::ScoresList& scoresList) {
-        //     if (!scoresList.items.empty()) {
-        //         beginInsertRows(QModelIndex(), static_cast<int>(m_items.size()),
-        //                         static_cast<int>(m_items.size() + scoresList.items.size()) - 1);
+        const auto generation = m_reloadGeneration;
 
-        //         for (const cloud::ScoresList::Item& item : scoresList.items) {
-        //             QVariantMap obj;
+        audioComService()->downloadProjectList(BATCH_SIZE, static_cast<int>(m_items.size()) / BATCH_SIZE + 1)
+        .onResolve(this, [this, generation](const au::au3cloud::ProjectList& projectList) {
+            if (generation != m_reloadGeneration) {
+                return;
+            }
 
-        //             obj[NAME_KEY] = item.title;
-        //             obj[PATH_KEY] = configuration()->cloudProjectPath(item.id).toQString();
-        //             obj[SUFFIX_KEY] = "";
-        //             obj[FILE_SIZE_KEY] = (item.fileSize > 0) ? DataFormatter::formatFileSize(item.fileSize).toQString() : QString();
-        //             obj[IS_CLOUD_KEY] = true;
-        //             obj[CLOUD_SCORE_ID_KEY] = item.id;
-        //             obj[TIME_SINCE_MODIFIED_KEY] = DataFormatter::formatTimeSince(Date::fromQDate(item.lastModified.date())).toQString();
-        //             obj[THUMBNAIL_URL_KEY] = item.thumbnailUrl;
-        //             obj[IS_CREATE_NEW_KEY] = false;
-        //             obj[IS_NO_RESULTS_FOUND_KEY] = false;
-        //             obj[CLOUD_VISIBILITY_KEY] = static_cast<int>(item.visibility);
-        //             obj[CLOUD_VIEW_COUNT_KEY] = item.viewCount;
+            if (!projectList.items.empty()) {
+                beginInsertRows(QModelIndex(), static_cast<int>(m_items.size()),
+                                static_cast<int>(m_items.size() + projectList.items.size()) - 1);
 
-        //             m_items.push_back(obj);
-        //         }
+                for (const au::au3cloud::ProjectList::Item& item : projectList.items) {
+                    QVariantMap obj;
 
-        //         endInsertRows();
-        //     }
+                    obj[NAME_KEY] = QString::fromStdString(item.name);
+                    obj[PATH_KEY] = ""; //configuration()->cloudProjectPath(item.id).toQString();
+                    obj[SUFFIX_KEY] = "";
+                    obj[IS_CLOUD_KEY] = true;
+                    obj[CLOUD_ITEM_ID_KEY] = QString::fromStdString(item.id);
+                    obj[TIME_SINCE_MODIFIED_KEY]
+                        = DataFormatter::formatTimeSince(Date::fromQDate(QDateTime::fromSecsSinceEpoch(
+                                                                             static_cast<qint64>(item.updated)).date())).toQString();
+                    obj[THUMBNAIL_URL_KEY] = "";
+                    obj[FILE_SIZE_KEY] = (item.fileSize > 0) ? DataFormatter::formatFileSize(item.fileSize).toQString() : QString();
+                    obj[IS_CREATE_NEW_KEY] = false;
+                    obj[IS_NO_RESULTS_FOUND_KEY] = false;
 
-        //     m_totalItems = scoresList.meta.totalScoresCount;
-        //     emit hasMoreChanged();
+                    m_items.push_back(obj);
+                }
 
-        //     m_isWaitingForPromise = false;
+                endInsertRows();
+            }
 
-        //     loadItemsIfNecessary();
-        // })
-        // .onReject(this, [this](int code, const std::string& err) {
-        //     LOGE() << "Loading scores list failed: [" << code << "] " << err;
-        //     setState(State::Error);
-        //     m_isWaitingForPromise = false;
-        // });
+            m_totalItems = projectList.meta.total;
+            emit hasMoreChanged();
+
+            m_isWaitingForPromise = false;
+
+            loadItemsIfNecessary();
+        })
+        .onReject(this, [this, generation](int, const std::string&) {
+            if (generation != m_reloadGeneration) {
+                return;
+            }
+            m_isWaitingForPromise = false;
+            setState(State::Error);
+        });
     } else {
         setState(State::Fine);
     }

@@ -16,7 +16,9 @@
 #include <stdexcept>
 #include <string_view>
 
-#include "au3-import-export/rapidjson/document.h"
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #include "au3-string-utils/CodeConversions.h"
 #include "au3-preferences/Prefs.h"
 
@@ -49,6 +51,11 @@ StringSetting audioComOAuthLoginPage {
 StringSetting audioComFinishUploadPage {
     L"/CloudServices/AudioCom/FinishUploadPage",
     L"https://audio.com/audacity/upload?audioId={audio_id}&token={auth_token}&clientId={auth_client_id}&" MTM_CAMPAIGN
+};
+
+StringSetting audioComTourPage {
+    L"/CloudServices/AudioCom/TourPage",
+    L"https://audio.com/tour?mtm_campaign=audacitydesktop&mtm_content=app_launch_reg"
 };
 
 StringSetting audioComAuthWithRedirectURL {
@@ -113,6 +120,8 @@ std::string GetButtonName(AudiocomTrace trace)
         return "Link_Audiocom_Account_Help_Menu";
     case AudiocomTrace::OpenFromCloudMenu:
         return "Open_From_Cloud_Menu";
+    case AudiocomTrace::TaskService:
+        return "Task_Service";
     }
 
     assert(false);
@@ -127,6 +136,7 @@ ServiceConfig::ServiceConfig()
     mOAuthClientSecret   = audacity::ToUTF8(audioComOAuthClientSecret.Read());
     mOAuthRedirectURL    = audacity::ToUTF8(audioComOAuthRedirectURL.Read());
     mAuthWithRedirectURL = audacity::ToUTF8(audioComAuthWithRedirectURL.Read());
+    mTourPage            = audacity::ToUTF8(audioComTourPage.Read());
     mOAuthLoginPage      = audacity::ToUTF8(audioComOAuthLoginPage.Read());
     mFinishUploadPage    = audacity::ToUTF8(audioComFinishUploadPage.Read());
     mFrontendURL         = audacity::ToUTF8(audioComFrontendURL.Read());
@@ -160,6 +170,11 @@ std::string ServiceConfig::GetOAuthClientSecret() const
 std::string ServiceConfig::GetOAuthRedirectURL() const
 {
     return mOAuthRedirectURL;
+}
+
+std::string ServiceConfig::GetTourPage() const
+{
+    return mTourPage;
 }
 
 std::string ServiceConfig::GetAuthWithRedirectURL() const
@@ -212,7 +227,15 @@ ServiceConfig::GetPreferredAudioFormats(bool preferLossless) const
     }
 }
 
-rapidjson::Document
+static std::string DocumentToString(rapidjson::Document& doc)
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    doc.Accept(writer);
+    return std::string(buffer.GetString(), buffer.GetSize());
+}
+
+std::string
 ServiceConfig::GetExportConfig(const std::string& mimeType) const
 {
     if (mimeType == "audio/x-wavpack") {
@@ -222,21 +245,22 @@ ServiceConfig::GetExportConfig(const std::string& mimeType) const
         config.AddMember("bit_rate", rapidjson::Value(40), config.GetAllocator());
         config.AddMember("bit_depth", 24, config.GetAllocator());
         config.AddMember("hybrid_mode", false, config.GetAllocator());
-        return config;
+        return DocumentToString(config);
     } else if (mimeType == "audio/x-flac") {
         rapidjson::Document config;
         config.SetObject();
         config.AddMember(
             "bit_depth", rapidjson::Value(24), config.GetAllocator());
         config.AddMember("level", rapidjson::Value(5), config.GetAllocator());
+        return DocumentToString(config);
     } else if (mimeType == "audio/x-wav") {
-        return {};
+        return "{}";
     } else if (mimeType == "audio/mpeg") {
         rapidjson::Document config;
         config.SetObject();
         config.AddMember("mode", rapidjson::Value("VBR"), config.GetAllocator());
         config.AddMember("quality", rapidjson::Value(5), config.GetAllocator());
-        return config;
+        return DocumentToString(config);
     }
 
     throw std::invalid_argument("unknown mime-type");
@@ -335,6 +359,59 @@ std::string ServiceConfig::GetDeleteSnapshotUrl(
         });
 }
 
+std::string ServiceConfig::GetAudioListUrl(
+    int page, int pageSize, std::string_view searchTerm) const
+{
+    if (searchTerm.empty()) {
+        return Substitute(
+            "{api_url}/my/audio?page={page}&per-page={page_size}",
+            { { "api_url", mApiEndpoint },
+                { "page", std::to_string(page) },
+                { "page_size", std::to_string(pageSize) }, });
+    }
+
+    return Substitute(
+        "{api_url}/my/audio?page={page}&per-page={page_size}&q={search_term}",
+        { { "api_url", mApiEndpoint },
+            { "page", std::to_string(page) },
+            { "page_size", std::to_string(pageSize) },
+            { "search_term", searchTerm }, });
+}
+
+std::string ServiceConfig::GetAudioInfoUrl(std::string_view audioId) const
+{
+    static constexpr auto kAudioFields
+        ="id,"
+         "slug,"
+         "title,"
+         "tags,"
+         "author_name,"
+         "username,"
+         "date_created,"
+         "date_updated,"
+         "is_public,"
+         "is_downloadable,"
+         "author.id";
+
+    return Substitute(
+        "{api_url}/audio/{audio_id}?fields={fields}&expand=author",
+        {
+            { "api_url", mApiEndpoint },
+            { "audio_id", audioId },
+            { "fields", kAudioFields },
+        });
+}
+
+std::string ServiceConfig::GetAudioDownloadListUrl(std::string_view audioId) const
+{
+    return Substitute(
+        "{api_url}/download/{audio_id}",
+        {
+            { "api_url", mApiEndpoint },
+            { "audio_id", audioId },
+        });
+}
+
 std::string ServiceConfig::GetNetworkStatsUrl(std::string_view projectId) const
 {
     return Substitute(
@@ -350,7 +427,7 @@ std::string ServiceConfig::GetProjectPagePath(
     AudiocomTrace trace) const
 {
     return Substitute(
-        "/{user_slug}/projects/{project_slug}&" MTM_CAMPAIGN,
+        "/{user_slug}/projects/{project_slug}?" MTM_CAMPAIGN,
         {
             { "user_slug", userSlug },
             { "project_slug", projectSlug },
@@ -368,6 +445,35 @@ std::string ServiceConfig::GetProjectsPagePath(
             { "user_slug", userSlug },
             { "version_number", audacity::ToUTF8(AUDACITY_VERSION_STRING) },
             { "button_name", GetButtonName(trace) },
+        });
+}
+
+std::string ServiceConfig::GetTaskPollUrl() const
+{
+    return Substitute(
+        "{api_url}/audacity/task/pending",
+        {
+            { "api_url", mApiEndpoint },
+        });
+}
+
+std::string ServiceConfig::GetTaskAckUrl(std::string_view taskId) const
+{
+    return Substitute(
+        "{api_url}/audacity/task/ack?id={task_id}",
+        {
+            { "api_url", mApiEndpoint },
+            { "task_id", taskId }
+        });
+}
+
+std::string ServiceConfig::GetTaskResultUrl(std::string_view taskId) const
+{
+    return Substitute(
+        "{api_url}/audacity/task/result?id={task_id}",
+        {
+            { "api_url", mApiEndpoint },
+            { "task_id", taskId }
         });
 }
 
